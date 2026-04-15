@@ -1,5 +1,4 @@
 #include "cli.h"
-#include "../common/util.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +15,10 @@ static const struct {
     { "upgrade",    cmd_upgrade,    "create an SD upgrade/flash card" },
     { "restore",    cmd_restore,    "restore an SD card back to a plain FAT32 disk" },
     { "list-disks", cmd_listdisks,  "list removable disks" },
+    { "verify",     cmd_verify,     "read back a disk/image and compare to update.img" },
+#ifdef RK_HAVE_TUI
+    { "tui",        cmd_tui,        "launch interactive curses front-end" },
+#endif
     { NULL, NULL, NULL }
 };
 

@@ -80,5 +80,7 @@ int  rk_image_find_part(const struct rk_image *img, const char *name, uint32_t *
 int  rk_image_export_part(struct rk_image *img, uint32_t index, const char *out_path);
 int  rk_image_read_part(struct rk_image *img, uint32_t index,
                         uint8_t **buf, uint64_t *len);
+int  rk_image_part_extent(const struct rk_image *img, uint32_t index,
+                          uint64_t *file_offset, uint64_t *length);
 
 #endif

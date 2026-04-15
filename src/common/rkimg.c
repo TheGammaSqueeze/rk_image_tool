@@ -170,6 +170,17 @@ int rk_image_read_part(struct rk_image *img, uint32_t index, uint8_t **buf, uint
     return 0;
 }
 
+int rk_image_part_extent(const struct rk_image *img, uint32_t index,
+                         uint64_t *file_offset, uint64_t *length)
+{
+    if (index >= img->rkaf.num_parts || index >= 16) return -1;
+    const struct rkaf_part *p = &img->rkaf.parts[index];
+    if (p->pos == 0xFFFFFFFFu || p->size == 0xFFFFFFFFu || p->size == 0) return -1;
+    if (file_offset) *file_offset = img->rkaf_offset + p->pos;
+    if (length)      *length      = p->size;
+    return 0;
+}
+
 int rk_image_export_part(struct rk_image *img, uint32_t index, const char *out_path)
 {
     uint8_t *b = NULL; uint64_t n = 0;

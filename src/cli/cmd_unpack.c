@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "../common/parameter.h"
 #include "../common/rkimg.h"
 #include "../common/util.h"
 
@@ -29,15 +30,17 @@ int cmd_unpack(int argc, char **argv)
 
     uint32_t n = img.rkaf.num_parts > 16 ? 16 : img.rkaf.num_parts;
 
-    FILE *pf = fopen((snprintf(sub, sizeof(sub), "%s/package-file", dir), sub),
-                     "w");
+    char pf_path[600];
+    snprintf(pf_path, sizeof(pf_path), "%s/package-file", dir);
+    FILE *pf = fopen(pf_path, "w");
     if (pf) {
-        fprintf(pf, "# NAME\tRelative path\n#\n##HWDEF\tHWDEF\n");
+        fprintf(pf, "# NAME\tRelative path\n#\n");
         fprintf(pf, "package-file\tpackage-file\n");
     }
 
     for (uint32_t i = 0; i < n; ++i) {
         const struct rkaf_part *p = &img.rkaf.parts[i];
+        if (strncmp(p->name, "package-file", 32) == 0) continue;
         if (strncmp(p->filename, "RESERVED", 8) == 0) {
             if (pf) fprintf(pf, "%.32s\tRESERVED\n", p->name);
             continue;
@@ -53,6 +56,17 @@ int cmd_unpack(int argc, char **argv)
             rk_image_close(&img);
             if (pf) fclose(pf);
             return 1;
+        }
+        if (strncmp(p->name, "parameter", 32) == 0) {
+            uint8_t *raw = NULL; uint64_t raw_len = 0;
+            if (rk_read_all(sub, &raw, &raw_len) == 0) {
+                uint8_t *unwrapped = NULL; size_t unwrapped_len = 0;
+                if (rk_parameter_unwrap(raw, raw_len, &unwrapped, &unwrapped_len) == 0) {
+                    rk_write_all(sub, unwrapped, unwrapped_len);
+                    free(unwrapped);
+                }
+                free(raw);
+            }
         }
         if (pf) fprintf(pf, "%.32s\t%.60s\n", p->name, p->filename);
     }
